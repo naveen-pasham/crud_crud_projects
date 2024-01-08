@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>CANDY SHOP SELLER DASHBOARD</title>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+ </head>
+  <body>
+    <div class="container">
+     <div class="row">
+      <div class="col-md-8 mx-auto">
+       <h1>CANDY SHOP SELLER DASHBOARD</h1>
+       <form onsubmit="additem(event)">
+        <input type="hidden" id="editIndex">
+        <div class="form-group">
+         <label for="candy">Candy Name:</label>
+         <input type="text" id="candy" name="candy" class="form-control" required>
+        </div>
+        <div class="form-group">
+         <label for="description">Description:</label>
+         <input type="text" id="description" name="description" class="form-control" required>
+        </div>
+        <div class="form-group">
+         <label for="price">Price:</label>
+            <input type="number" id="price" name="price" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" class="form-control" required>
+           </div><br>
+        <button type="submit" id="addButton" class="btn btn-primary">Add Item</button>
+       </form>
+       <br>
+       <table class="table table-striped table-bordered" id="expenseTable">
+        <thead>
+         <tr>
+          <th>Candy Name</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Quantity</th>
+          <th>Buying</th>
+          <th>Actions</th>
+         </tr>
+        </thead>
+        <tbody></tbody>
+       </table>
+      </div>
+     </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.4/axios.min.js"></script>
+    <script>
+    function additem(event) {
+      event.preventDefault();
+      const candyname=event.target.candy.value;
+      const description=event.target.description.value;
+      const price=event.target.price.value;
+      const quantity=event.target.quantity.value;
+      var editIndex = document.getElementById('editIndex').value;
+      const obj={
+        candyname,
+        description,
+        price,
+        quantity
+      }
+      if (editIndex === '') {
+      axios
+       .post('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop',obj) 
+       .then((response) =>{ showNewItemOnScreen(response.data)})
+       .catch(err => console.error(err));
+   } else {
+          updateItem(editIndex, candyname, description, price, quantity);
+         }
+         resetForm();
+        }
+
+  //get item from crud crud
+window.addEventListener("DOMContentLoaded", () =>{
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+        for(var i=0;i<response.data.length;i++){
+            showNewItemOnScreen(response.data[i])
+        }
+    })
+       .catch(err => console.log(err));
+});
+
+  //edit form
+function editItem(row) {
+    var rowIndex = row.rowIndex - 1;
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+        var id=response.data[rowIndex]._id;
+    document.getElementById('candy').value=response.data[rowIndex].candyname;
+    document.getElementById('description').value=response.data[rowIndex].description;
+    document.getElementById('price').value=response.data[rowIndex].price;
+    document.getElementById('quantity').value=response.data[rowIndex].quantity;
+    document.getElementById('editIndex').value = rowIndex;
+    document.getElementById('addButton').innerHTML="Update Item";  
+        })
+    .catch(err => console.log(err));
+}
+
+  //update user
+function updateItem(editIndex, candyname, description, price, quantity){
+    const obj={
+        candyname,
+        description,
+        price,
+        quantity,
+      }
+      
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+    var id=response.data[editIndex]._id;
+    var data=response.data[editIndex];
+    axios.put('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop/'+id,obj)
+    .then((response)=>{
+      var tableRow = document.getElementById('expenseTable').rows[parseInt(editIndex)+1];
+    tableRow.cells[0].innerHTML = obj.candyname;
+    tableRow.cells[1].innerHTML = obj.description;
+    tableRow.cells[2].innerHTML = obj.price;
+    tableRow.cells[3].innerHTML = obj.quantity;
+       })
+})
+    .catch(err => console.log(err));
+}
+
+   // DELETE REQUEST
+   function removeItem(row) {
+    var rowIndex = row.rowIndex - 1;
+    row.parentNode.removeChild(row);
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+        var id=response.data[rowIndex]._id;
+       axios.delete('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop/'+id)
+    .catch(err => console.log(err));
+        })
+    .catch(err => console.log(err));
+  }
+
+// reset Form
+
+function resetForm(){
+  document.getElementById('candy').value='';
+    document.getElementById('description').value='';
+    document.getElementById('price').value='';
+    document.getElementById('quantity').value='';
+    document.getElementById('editIndex').value = '';
+   document.getElementById('addButton').innerHTML = 'Add Item';
+ }
+
+//Buy one
+
+function BuyOne(row){
+  var rowIndex = row.rowIndex - 1;
+      
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+    var id=response.data[rowIndex]._id;
+    const candyname=response.data[rowIndex].candyname;
+      const description=response.data[rowIndex].description;
+      const price=response.data[rowIndex].price;
+      const quantity=parseInt(response.data[rowIndex].quantity)-1;
+          const obj={
+        candyname,
+        description,
+        price,
+        quantity,
+      }
+    axios.put('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop/'+id,obj)
+    .then((response)=>{
+      var tableRow = document.getElementById('expenseTable').rows[parseInt(rowIndex)+1];
+    tableRow.cells[0].innerHTML = obj.candyname;
+    tableRow.cells[1].innerHTML = obj.description;
+    tableRow.cells[2].innerHTML = obj.price;
+    tableRow.cells[3].innerHTML = obj.quantity;
+       }).catch(err => console.log(err))
+})
+    .catch(err => console.log(err));
+
+}
+
+//Buy Two
+
+function BuyTwo(row){
+  var rowIndex = row.rowIndex - 1;
+      
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+    var id=response.data[rowIndex]._id;
+    const candyname=response.data[rowIndex].candyname;
+      const description=response.data[rowIndex].description;
+      const price=response.data[rowIndex].price;
+      const quantity=parseInt(response.data[rowIndex].quantity)-2;
+          const obj={
+        candyname,
+        description,
+        price,
+        quantity,
+      }
+    axios.put('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop/'+id,obj)
+    .then((response)=>{
+      var tableRow = document.getElementById('expenseTable').rows[parseInt(rowIndex)+1];
+    tableRow.cells[0].innerHTML = obj.candyname;
+    tableRow.cells[1].innerHTML = obj.description;
+    tableRow.cells[2].innerHTML = obj.price;
+    tableRow.cells[3].innerHTML = obj.quantity;
+       }).catch(err => console.log(err))
+})
+    .catch(err => console.log(err));
+
+}
+
+//Buy Three
+
+function BuyThree(row){
+  var rowIndex = row.rowIndex - 1;
+      
+    axios.get('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop') 
+       .then((response) =>{ 
+    var id=response.data[rowIndex]._id;
+    const candyname=response.data[rowIndex].candyname;
+      const description=response.data[rowIndex].description;
+      const price=response.data[rowIndex].price;
+      const quantity=parseInt(response.data[rowIndex].quantity)-3;
+          const obj={
+        candyname,
+        description,
+        price,
+        quantity,
+      }
+    axios.put('https://crudcrud.com/api/210e4c738e1147a6a6073bb8aa4fd4c3/candyshop/'+id,obj)
+    .then((response)=>{
+      var tableRow = document.getElementById('expenseTable').rows[parseInt(rowIndex)+1];
+    tableRow.cells[0].innerHTML = obj.candyname;
+    tableRow.cells[1].innerHTML = obj.description;
+    tableRow.cells[2].innerHTML = obj.price;
+    tableRow.cells[3].innerHTML = obj.quantity;
+       }).catch(err => console.log(err))
+})
+    .catch(err => console.log(err));
+
+}
+
+ // show user details
+
+  function showNewItemOnScreen(Item){
+    var tableBody = document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+          var row = '<tr><td>' + Item.candyname + '</td><td>' + Item.description + '</td><td>' + Item.price + '</td><td>' + Item.quantity + '</td><td><button type="button" class="btn btn-sm btn-secondary" onclick="BuyOne(this.parentNode.parentNode)">Buy One</button> <button type="button" class="btn btn-sm btn-secondary" onclick="BuyTwo(this.parentNode.parentNode)">Buy Two</button> <button type="button" class="btn btn-sm btn-secondary" onclick="BuyThree(this.parentNode.parentNode)">Buy Three</button></td><td><button type="button" class="btn btn-sm btn-primary" onclick="editItem(this.parentNode.parentNode)">Edit</button> <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(this.parentNode.parentNode)">Delete</button></td></tr>';
+          tableBody.insertAdjacentHTML('beforeend', row);
+}
+   </script>
+
+  </body></html>
