@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Booking Appointment App</title>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+ <body>
+    <div class="container">
+     <div class="row">
+      <div class="col-md-8 mx-auto">
+       <h1>Booking Appointment App</h1>
+       <form onsubmit="adduser(event)">
+        <input type="hidden" id="editIndex">
+        <div class="form-group">
+            <label for="name">Name :</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+           </div>
+        <div class="form-group">
+         <label for="email">EmailId:</label>
+         <input type="email" id="emailId" name="emailId" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone Number:</label>
+            <input type="number" id="phonenumber" name="phonenumber" class="form-control" required>
+           </div>
+        <button type="submit" id="addButton" class="btn btn-primary">Add User</button>
+       </form>
+       <br>
+       <table class="table table-striped table-bordered" id="expenseTable">
+        <thead>
+         <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Actions</th>
+         </tr>
+        </thead>
+        <tbody></tbody>
+       </table>
+      </div>
+     </div>
+    </div>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.4/axios.min.js"></script>
+    
+    <script>
+    // add items to crud crud
+        function adduser(event) {
+      event.preventDefault();
+      const name=event.target.username.value;
+      const email=event.target.emailId.value;
+      const phonenumber=event.target.phonenumber.value;
+      var editIndex = document.getElementById('editIndex').value;
+    
+      const obj={
+        name,
+        email,
+        phonenumber,
+
+      }
+      if (editIndex === '') {
+      axios.post('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata',obj) 
+       .then((response) =>{ showNewUserOnScreen(response.data)})
+       .catch(err => console.error(err));
+    } else {
+          updateUser(editIndex, name, email, phonenumber);
+         }
+         resetForm();
+   }
+   
+
+//get item from crud crud
+window.addEventListener("DOMContentLoaded", () =>{
+    axios.get('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata') 
+       .then((response) =>{ 
+        for(var i=0;i<response.data.length;i++){
+            showNewUserOnScreen(response.data[i])
+        }
+    })
+       .catch(err => console.log(err));
+})
+
+
+
+//edit form
+function edituser(row) {
+    var rowIndex = row.rowIndex - 1;
+    axios.get('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata') 
+       .then((response) =>{ 
+        var id=response.data[rowIndex]._id;
+    document.getElementById('username').value=response.data[rowIndex].name;
+    document.getElementById('emailId').value=response.data[rowIndex].email;
+    document.getElementById('phonenumber').value=response.data[rowIndex].phonenumber;
+    document.getElementById('editIndex').value = rowIndex;
+    document.getElementById('addButton').innerHTML="Update User";  
+        })
+    .catch(err => console.log(err));
+}
+
+
+//update user
+function updateUser(editIndex, name, email, phonenumber){
+    const obj={
+        name,
+        email,
+        phonenumber,
+
+      }
+      
+    axios.get('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata') 
+       .then((response) =>{ 
+    var id=response.data[editIndex]._id;
+    var data=response.data[editIndex];
+    axios.put('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata/'+id,obj)
+    .then((response)=>{
+      var tableRow = document.getElementById('expenseTable').rows[parseInt(editIndex)+1];
+    tableRow.cells[0].innerHTML = obj.name;
+    tableRow.cells[1].innerHTML = obj.email;
+    tableRow.cells[2].innerHTML = obj.phonenumber;
+       })
+})
+    .catch(err => console.log(err));
+}
+  
+  // DELETE REQUEST
+  function removeuser(row) {
+    var rowIndex = row.rowIndex - 1;
+    row.parentNode.removeChild(row);
+    axios.get('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata') 
+       .then((response) =>{ 
+        var id=response.data[rowIndex]._id;
+       axios.delete('https://crudcrud.com/api/63211d5e6cda4e5299fc5e9a94ac3b90/appointmentdata/'+id) 
+
+    .catch(err => console.log(err));
+        })
+    .catch(err => console.log(err));
+  }
+
+ // reset Form
+ function resetForm(){
+  document.getElementById('username').value='';
+    document.getElementById('emailId').value='';
+    document.getElementById('phonenumber').value='';
+    document.getElementById('editIndex').value = '';
+   document.getElementById('addButton').innerHTML = 'Add User';
+ }
+
+// show user details
+function showNewUserOnScreen(user){
+    var tableBody = document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+          var row = '<tr><td>' + user.name + '</td><td>' + user.email + '</td><td>' + user.phonenumber + '</td><td><button type="button" class="btn btn-sm btn-primary" onclick="edituser(this.parentNode.parentNode)">Edit</button> <button type="button" class="btn btn-sm btn-danger" onclick="removeuser(this.parentNode.parentNode)">Delete</button></td></tr>';
+          tableBody.insertAdjacentHTML('beforeend', row);
+}
+</script>
+</body>
+</html>
