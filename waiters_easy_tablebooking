@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>table odrers</title>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+ <body>
+    <div class="container">
+     <div class="row">
+      <div class="col-md-8 mx-auto">
+       <h1>Booking Table Oders</h1>
+       <form onsubmit="adduser(event)">
+        <div class="form-group">
+            <label for="price">Choose Price :</label>
+            <input type="number" id="price" name="price" class="form-control" required>
+           </div>
+        <div class="form-group">
+         <label for="dish">Choose Dish:</label>
+         <input type="text" id="dish" name="dish" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="table">Choose a Table:</label>
+            <select id="table" name="table" class="form-control" required><option value="Table 1">Table 1</option><option value="Table 2">Table 2</option><option value="Table 3">Table 3</option></select>
+           </div>
+        <button type="submit" id="addButton" class="btn btn-primary">Add To Bill</button>
+       </form>
+       <br>
+       <ul  id="Oderlist" >
+        <li>TABLE 1
+            <ul  id="table1"></ul>
+        </li>
+        <li>TABLE 2
+            <ul  id="table2"></ul>
+        </li>
+        <li>TABLE 3
+            <ul  id="table3"></ul>
+        </li>
+       </ul>
+      </div>
+     </div>
+    </div>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.4/axios.min.js"></script>
+    
+    <script>
+    // add items to crud crud
+       async function adduser(event) {
+      event.preventDefault();
+      try{
+      const price=event.target.price.value;
+      const dish=event.target.dish.value;
+      const table=event.target.table.value;
+    
+      const obj={
+        price,
+        dish,
+        table,
+
+      }
+        const response=await  axios.post('https://crudcrud.com/api/02c00b852bb04745a4860be1da56a375/tableodres',obj) 
+        showNewUserOnScreen(response.data);
+        }
+        catch(error){
+          console.log(error)
+        }
+   }
+   
+
+
+//get item from crud crud
+window.addEventListener("DOMContentLoaded", async () =>{
+    try{
+    const response=await axios.get('https://crudcrud.com/api/02c00b852bb04745a4860be1da56a375/tableodres') 
+        for(var i=0;i<response.data.length;i++){
+            showNewUserOnScreen(response.data[i])
+        }
+    }
+    catch(error){
+        console.log(error);
+    }
+})
+ 
+  // DELETE REQUEST
+  async function removeuser(row) {
+    try{
+   row.remove();
+        const data=await axios.delete('https://crudcrud.com/api/02c00b852bb04745a4860be1da56a375/tableodres') 
+    }
+    catch(error){
+        console.log(error);
+    }
+
+
+  }
+
+// show user details
+async function showNewUserOnScreen(user){
+    document.getElementById('price').value='';
+    document.getElementById('dish').value='';
+    document.getElementById('table').value='';
+    const table1="Table 1";
+    const table2="Table 2";
+    const table3="Table 3";
+    if(user.table===table1){
+        let tableBody = await document.getElementById('table1');
+        let row =await '<li>' + user.price +"  "+ user.dish + '<button type="button" class="btn btn-sm btn-danger" onclick="removeuser(this.parentNode)">Delete</button></li>';
+         tableBody.insertAdjacentHTML('beforeend', row);
+    }else if(user.table===table2){
+        let tableBody = await document.getElementById('table2');
+        let row =await '<li>' + user.price + user.dish + '<button type="button" class="btn btn-sm btn-danger" onclick="removeuser(this.parentNode)">Delete</button></li>';
+         tableBody.insertAdjacentHTML('beforeend', row);
+    }else if(user.table===table3){
+        let tableBody = await document.getElementById('table3');
+        let row =await '<li>' + user.price + user.dish + '<button type="button" class="btn btn-sm btn-danger" onclick="removeuser(this.parentNode)">Delete</button></li>';
+         tableBody.insertAdjacentHTML('beforeend', row);
+    }
+}
+</script>
+</body>
+</html>
