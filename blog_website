@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Blog Website</title>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+ <body>
+    <div class="container">
+     <div class="row">
+      <div class="col-md-8 mx-auto">
+       <h1>Your Blog</h1>
+       <h2 id="totalblogs">Total Blog: 0</h2>
+       <form onsubmit="addblog(event)">
+        <input type="hidden" id="editIndex">
+        <div class="form-group">
+            <label for="name">Image Url :</label>
+            <input type="text" id="imageurl" name="imageurl" class="form-control" required>
+           </div>
+        <div class="form-group">
+         <label for="email">Title:</label>
+         <input type="text" id="imagetitle" name="imagetitle" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Blog Description:</label>
+            <input type="text" id="description" name="description" class="form-control" required>
+           </div>
+        <button type="submit" id="addButton" class="btn btn-primary">Post Blog</button>
+       </form>
+       <br>
+       <table class="table table-striped table-bordered" id="expenseTable">
+        <thead>
+         <tr>
+          <th>Image</th>
+          <th>Title</th>
+          <th>Blog Description</th>
+          <th>Actions</th>
+         </tr>
+        </thead>
+        <tbody></tbody>
+       </table>
+      </div>
+     </div>
+    </div>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.4/axios.min.js"></script>
+    
+    <script>
+    // add items to crud crud
+       async function addblog(event) {
+      event.preventDefault();
+      try{
+      const imageurl=event.target.imageurl.value;
+      const imagetitle=event.target.imagetitle.value;
+      const description=event.target.description.value;
+      let editIndex = document.getElementById('editIndex').value;
+    
+      const obj={
+        imageurl,
+        imagetitle,
+        description,
+
+      }
+      if (editIndex === '') {
+        const response=await  axios.post('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts',obj)
+        showNewBlogOnScreen(response.data);
+    } else {
+          updateblog(editIndex, imageurl, imagetitle, description);
+         }
+         resetForm();
+        }
+        catch(error){
+          console.log(error)
+        }
+   }
+   
+
+
+//get item from crud crud
+window.addEventListener("DOMContentLoaded", async () =>{
+    try{
+    const response=await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts') 
+        for(var i=0;i<response.data.length;i++){
+            showNewBlogOnScreen(response.data[i])
+        }
+    }
+    catch(error){
+        console.log(error);
+    }
+})
+
+
+
+//edit form
+async function editblog(row) {
+  try{
+    const rowIndex =await row.rowIndex - 1;
+    const response= await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts') 
+    document.getElementById('imageurl').value=response.data[rowIndex].imageurl;
+    document.getElementById('imagetitle').value=response.data[rowIndex].imagetitle;
+    document.getElementById('description').value=response.data[rowIndex].description;
+    document.getElementById('editIndex').value = rowIndex;
+    document.getElementById('addButton').innerHTML="Update Blog";  
+      }catch(error){
+        console.log(error);
+      }
+}
+
+
+//update user
+async function updateblog(editIndex, imageurl, imagetitle, description){
+  try{
+    const obj={
+        imageurl,
+        imagetitle,
+        description,
+
+      }
+      
+    const response =await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts') 
+    const id=await response.data[editIndex]._id;
+    const updatedata=await axios.put('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts/'+id,obj)
+      let tableRow =await document.getElementById('expenseTable').rows[parseInt(editIndex)+1];
+    tableRow.cells[0].innerHTML = '<img src="'+obj.imageurl+'" width="100px">';
+    tableRow.cells[1].innerHTML = obj.imagetitle;
+    tableRow.cells[2].innerHTML = obj.description;
+       }catch(error){
+        console.log(err);
+       }
+}
+  
+  // DELETE REQUEST
+  async function removeblog(row) {
+    try{
+    const rowIndex =await row.rowIndex - 1;
+    row.parentNode.removeChild(row);
+    const response=await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts') 
+        const id=await response.data[rowIndex]._id;
+      const data=await axios.delete('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts/'+id)
+      const afterdelete=await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts') 
+      document.getElementById('totalblogs').innerHTML="Total Blogs:"+afterdelete.data.length;
+    }
+    catch(error){
+        console.log(error);
+    }
+
+
+  }
+
+ // reset Form
+ function resetForm(){
+  document.getElementById('imageurl').value='';
+    document.getElementById('imagetitle').value='';
+    document.getElementById('description').value='';
+    document.getElementById('editIndex').value = '';
+   document.getElementById('addButton').innerHTML = 'Post Blog';
+ }
+
+// show user details
+async function showNewBlogOnScreen(Blog){
+   // console.log()
+    let tableBody = await document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+          let row =await '<tr><td><img src="'+Blog.imageurl+'" width="100px"></td><td>' + Blog.imagetitle + '</td><td>' + Blog.description + '</td><td><button type="button" class="btn btn-sm btn-primary" onclick="editblog(this.parentNode.parentNode)">Edit</button> <button type="button" class="btn btn-sm btn-danger" onclick="removeblog(this.parentNode.parentNode)">Delete</button></td></tr>';
+          tableBody.insertAdjacentHTML('beforeend', row);
+          const response=await axios.get('https://crudcrud.com/api/1aa7cc6dc78e43b9bc87ef4122d29f2a/blogposts');
+          document.getElementById('totalblogs').innerHTML="Total Blogs:"+response.data.length;
+}
+</script>
+</body>
+</html>
